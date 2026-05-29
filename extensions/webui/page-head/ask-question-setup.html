@@ -1,0 +1,763 @@
+<style>
+/* ── Ask User Question Modal Styles ── */
+.ask-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: ask-fade-in 0.2s ease;
+}
+
+@keyframes ask-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.ask-modal {
+  background: var(--color-background-elevated, #1e1e2e);
+  border-radius: var(--border-radius-lg, 12px);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+  width: 92%;
+  max-width: 720px;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: ask-slide-up 0.25s ease;
+}
+
+@keyframes ask-slide-up {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.ask-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-border, #333);
+}
+
+.ask-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ask-header-icon {
+  color: var(--color-primary, #3b82f6);
+  font-size: 22px;
+}
+
+.ask-header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-text, #e0e0e0);
+}
+
+.ask-close {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--border-radius-sm, 6px);
+  color: var(--color-text-secondary, #888);
+  transition: color 0.2s, background 0.2s;
+}
+
+.ask-close:hover {
+  color: var(--color-text, #e0e0e0);
+  background: var(--color-background-muted, #2a2a3a);
+}
+
+.ask-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 8px 16px;
+  background: var(--color-background-muted, #16161e);
+  border-bottom: 1px solid var(--color-border, #333);
+  overflow-x: auto;
+}
+
+.ask-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: var(--border-radius-md, 8px);
+  background: transparent;
+  color: var(--color-text-secondary, #888);
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.ask-tab:hover {
+  background: var(--color-background-elevated, #252535);
+  color: var(--color-text, #e0e0e0);
+}
+
+.ask-tab.active {
+  background: var(--color-primary, #3b82f6);
+  color: #fff;
+}
+
+.ask-tab.answered:not(.active) {
+  color: var(--color-success, #22c55e);
+}
+
+.ask-tab.answered:not(.active) .ask-tab-index {
+  background: var(--color-success, #22c55e);
+  color: #fff;
+}
+
+.ask-tab-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-background-muted, #333);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.ask-tab.active .ask-tab-index {
+  background: rgba(255,255,255,0.25);
+}
+
+.ask-tab-label {
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.submit-tab {
+  margin-left: auto;
+}
+
+.ask-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.ask-question-layout {
+  display: flex;
+  gap: 20px;
+}
+
+.ask-question-layout.has-preview .ask-question-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.ask-question-main {
+  flex: 1;
+}
+
+.ask-question-text {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text, #e0e0e0);
+  margin: 0 0 12px 0;
+  line-height: 1.5;
+}
+
+.ask-multiselect-hint {
+  display: inline-block;
+  font-size: 0.75rem;
+  color: var(--color-primary, #3b82f6);
+  background: rgba(59, 130, 246, 0.1);
+  padding: 2px 10px;
+  border-radius: 20px;
+  margin-bottom: 12px;
+}
+
+.ask-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.ask-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--border-radius-md, 8px);
+  border: 1px solid var(--color-border, #333);
+  background: var(--color-background-muted, #16161e);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.ask-option:hover {
+  border-color: var(--color-primary, #3b82f6);
+  background: rgba(59, 130, 246, 0.06);
+}
+
+.ask-option.selected {
+  border-color: var(--color-primary, #3b82f6);
+  background: rgba(59, 130, 246, 0.12);
+  box-shadow: 0 0 0 1px var(--color-primary, #3b82f6);
+}
+
+.ask-option-check { flex-shrink: 0; }
+
+.ask-radio {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border, #555);
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.ask-radio.checked {
+  border-color: var(--color-primary, #3b82f6);
+  background: var(--color-primary, #3b82f6);
+}
+
+.ask-radio.checked::after {
+  content: '';
+  position: absolute;
+  top: 4px; left: 4px;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.ask-checkbox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 2px solid var(--color-border, #555);
+  transition: all 0.15s ease;
+}
+
+.ask-checkbox.checked {
+  border-color: var(--color-primary, #3b82f6);
+  background: var(--color-primary, #3b82f6);
+  color: #fff;
+}
+
+.ask-checkbox .material-symbols-outlined { font-size: 14px; }
+
+.ask-option-content { flex: 1; min-width: 0; }
+
+.ask-option-label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text, #e0e0e0);
+}
+
+.ask-option-desc {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--color-text-secondary, #888);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+.ask-preview-badge {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--color-primary, #3b82f6);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.ask-other-input {
+  padding: 0 0 0 30px;
+  margin-top: -4px;
+}
+
+.ask-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: var(--border-radius-md, 8px);
+  border: 1px solid var(--color-border, #333);
+  background: var(--color-background-muted, #16161e);
+  color: var(--color-text, #e0e0e0);
+  font-size: 0.85rem;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.15s;
+}
+
+.ask-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary, #3b82f6);
+}
+
+.ask-textarea::placeholder {
+  color: var(--color-text-secondary, #666);
+}
+
+.ask-notes-section { margin-top: 12px; }
+
+.ask-notes-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: var(--color-text-secondary, #888);
+  margin-bottom: 6px;
+  cursor: default;
+}
+
+.ask-notes-textarea { min-height: 44px; }
+
+.ask-preview-pane {
+  width: 260px;
+  flex-shrink: 0;
+  border-radius: var(--border-radius-md, 8px);
+  border: 1px solid var(--color-border, #333);
+  background: var(--color-background-muted, #16161e);
+  overflow: hidden;
+  align-self: flex-start;
+}
+
+.ask-preview-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-secondary, #888);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--color-border, #333);
+}
+
+.ask-preview-content {
+  padding: 14px;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--color-text, #e0e0e0);
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.ask-preview-content :first-child { margin-top: 0; }
+
+.ask-review-panel { padding: 4px 0; }
+
+.ask-review-title {
+  margin: 0 0 16px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text, #e0e0e0);
+}
+
+.ask-review-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--border-radius-md, 8px);
+  border: 1px solid var(--color-border, #333);
+  background: var(--color-background-muted, #16161e);
+  margin-bottom: 8px;
+}
+
+.ask-review-item.unanswered {
+  border-color: var(--color-warning, #f59e0b);
+  background: rgba(245, 158, 11, 0.06);
+}
+
+.ask-review-q {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+.ask-review-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-primary, #3b82f6);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.ask-review-text {
+  font-size: 0.85rem;
+  color: var(--color-text, #e0e0e0);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ask-review-answer {
+  font-size: 0.82rem;
+  color: var(--color-success, #22c55e);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.ask-review-item.unanswered .ask-review-answer {
+  color: var(--color-warning, #f59e0b);
+}
+
+.ask-review-edit {
+  padding: 4px 12px;
+  border-radius: var(--border-radius-sm, 6px);
+  border: 1px solid var(--color-border, #333);
+  background: transparent;
+  color: var(--color-text-secondary, #888);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.ask-review-edit:hover {
+  border-color: var(--color-primary, #3b82f6);
+  color: var(--color-primary, #3b82f6);
+}
+
+.ask-review-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: var(--border-radius-md, 8px);
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--color-warning, #f59e0b);
+  font-size: 0.85rem;
+  margin-top: 8px;
+}
+
+.ask-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-top: 1px solid var(--color-border, #333);
+}
+
+.ask-footer-left,
+.ask-footer-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ask-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--border-radius-md, 8px);
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ask-btn-chat {
+  background: transparent;
+  border: 1px solid var(--color-border, #333);
+  color: var(--color-text-secondary, #888);
+}
+
+.ask-btn-chat:hover {
+  border-color: var(--color-text-secondary, #888);
+  color: var(--color-text, #e0e0e0);
+}
+
+.ask-btn-secondary {
+  background: var(--color-background-muted, #252535);
+  color: var(--color-text, #e0e0e0);
+  border: 1px solid var(--color-border, #333);
+}
+
+.ask-btn-secondary:hover {
+  background: var(--color-background-elevated, #303040);
+}
+
+.ask-btn-primary {
+  background: var(--color-primary, #3b82f6);
+  color: #fff;
+}
+
+.ask-btn-primary:hover:not(:disabled) {
+  background: var(--color-primary-hover, #2563eb);
+}
+
+.ask-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ask-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: ask-spin 0.6s linear infinite;
+}
+
+@keyframes ask-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 600px) {
+  .ask-modal { width: 98%; max-height: 95vh; }
+  .ask-question-layout { flex-direction: column; }
+  .ask-preview-pane { width: 100%; }
+  .ask-tabs { padding: 6px 10px; }
+  .ask-tab-label { max-width: 50px; }
+  .ask-footer { flex-direction: column; gap: 8px; }
+  .ask-footer-left, .ask-footer-right { width: 100%; justify-content: center; }
+}
+</style>
+
+<script type="module">
+import { store } from '/usr/plugins/ask_user_question/webui/ask-store.js';
+
+// Start polling for pending questions
+store._startPolling();
+
+// Build the modal DOM and append to body so Alpine can discover it
+const wrapper = document.createElement('div');
+wrapper.id = 'ask-user-question-modal-root';
+
+wrapper.innerHTML = `
+<template x-if="$store.askUserQuestion">
+  <div x-data x-show="$store.askUserQuestion.showModal" style="display: none;" @keydown.escape.window="$store.askUserQuestion.cancel()">
+    <div class="ask-overlay" @click.self="$store.askUserQuestion.cancel()">
+      <div class="ask-modal" @click.stop>
+
+        <!-- Header -->
+        <div class="ask-header">
+          <div class="ask-header-left">
+            <span class="material-symbols-outlined ask-header-icon">help</span>
+            <h3>Agent Question</h3>
+          </div>
+          <button class="ask-close" @click="$store.askUserQuestion.cancel()">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <!-- Tab Bar -->
+        <div class="ask-tabs">
+          <template x-for="(q, qi) in $store.askUserQuestion.questions" :key="'tab-'+qi">
+            <button
+              class="ask-tab"
+              :class="{
+                'active': $store.askUserQuestion.activeTab === qi,
+                'answered': ($store.askUserQuestion.answers[qi] || []).length > 0 || ($store.askUserQuestion.otherTexts[qi] || '').trim()
+              }"
+              @click="$store.askUserQuestion.setTab(qi)"
+              :title="q.question"
+            >
+              <span class="ask-tab-index" x-text="qi + 1"></span>
+              <span class="ask-tab-label" x-text="q.header"></span>
+            </button>
+          </template>
+          <button
+            class="ask-tab submit-tab"
+            :class="{ 'active': $store.askUserQuestion.showSubmitTab }"
+            @click="$store.askUserQuestion.setTab($store.askUserQuestion.questions.length)"
+          >
+            <span class="material-symbols-outlined" style="font-size: 16px;">send</span>
+            <span class="ask-tab-label">Submit</span>
+          </button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="ask-body">
+          <!-- Question Tabs -->
+          <template x-for="(q, qi) in $store.askUserQuestion.questions" :key="'qcontent-'+qi">
+            <div x-show="$store.askUserQuestion.activeTab === qi" class="ask-question-panel">
+              <div class="ask-question-layout"
+                   :class="{ 'has-preview': $store.askUserQuestion.getPreviewContent(qi) }">
+                <div class="ask-question-main">
+                  <p class="ask-question-text" x-text="q.question"></p>
+
+                  <template x-if="q.multiSelect">
+                    <span class="ask-multiselect-hint">You can select multiple options</span>
+                  </template>
+
+                  <div class="ask-options">
+                    <template x-for="(opt, oi) in q.options" :key="'opt-'+qi+'-'+oi">
+                      <div
+                        class="ask-option"
+                        :class="{ 'selected': $store.askUserQuestion.isSelected(qi, opt.label) }"
+                        @click="$store.askUserQuestion.toggleOption(qi, opt.label)"
+                      >
+                        <div class="ask-option-check">
+                          <template x-if="q.multiSelect">
+                            <span class="ask-checkbox" :class="{ 'checked': $store.askUserQuestion.isSelected(qi, opt.label) }">
+                              <span class="material-symbols-outlined" x-show="$store.askUserQuestion.isSelected(qi, opt.label)">check</span>
+                            </span>
+                          </template>
+                          <template x-if="!q.multiSelect">
+                            <span class="ask-radio" :class="{ 'checked': $store.askUserQuestion.isSelected(qi, opt.label) }"></span>
+                          </template>
+                        </div>
+                        <div class="ask-option-content">
+                          <span class="ask-option-label" x-text="opt.label"></span>
+                          <template x-if="opt.description">
+                            <span class="ask-option-desc" x-text="opt.description"></span>
+                          </template>
+                        </div>
+                        <template x-if="opt.preview">
+                          <span class="ask-preview-badge">Preview</span>
+                        </template>
+                      </div>
+                    </template>
+
+                    <!-- Other option -->
+                    <div class="ask-option ask-option-other"
+                         :class="{ 'selected': $store.askUserQuestion.isSelected(qi, '__other__') }"
+                         @click="$store.askUserQuestion.toggleOption(qi, '__other__')">
+                      <div class="ask-option-check">
+                        <template x-if="q.multiSelect">
+                          <span class="ask-checkbox" :class="{ 'checked': $store.askUserQuestion.isSelected(qi, '__other__') }">
+                            <span class="material-symbols-outlined" x-show="$store.askUserQuestion.isSelected(qi, '__other__')">check</span>
+                          </span>
+                        </template>
+                        <template x-if="!q.multiSelect">
+                          <span class="ask-radio" :class="{ 'checked': $store.askUserQuestion.isSelected(qi, '__other__') }"></span>
+                        </template>
+                      </div>
+                      <div class="ask-option-content">
+                        <span class="ask-option-label">Other</span>
+                        <span class="ask-option-desc">Type your own answer</span>
+                      </div>
+                    </div>
+
+                    <template x-if="$store.askUserQuestion.isSelected(qi, '__other__')">
+                      <div class="ask-other-input">
+                        <textarea
+                          class="ask-textarea"
+                          placeholder="Type your answer here..."
+                          x-model="$store.askUserQuestion.otherTexts[qi]"
+                          rows="2"
+                          @click.stop
+                        ></textarea>
+                      </div>
+                    </template>
+                  </div>
+
+                  <div class="ask-notes-section">
+                    <label class="ask-notes-label">
+                      <span class="material-symbols-outlined" style="font-size: 14px;">note_add</span>
+                      Notes (optional)
+                    </label>
+                    <textarea
+                      class="ask-textarea ask-notes-textarea"
+                      placeholder="Add any additional context or notes..."
+                      x-model="$store.askUserQuestion.notes[qi]"
+                      rows="2"
+                    ></textarea>
+                  </div>
+                </div>
+
+                <template x-if="$store.askUserQuestion.getPreviewContent(qi)">
+                  <div class="ask-preview-pane">
+                    <div class="ask-preview-header">
+                      <span class="material-symbols-outlined" style="font-size: 14px;">visibility</span>
+                      Preview
+                    </div>
+                    <div class="ask-preview-content" x-html="$store.askUserQuestion.getPreviewContent(qi)"></div>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </template>
+
+          <!-- Submit / Review Tab -->
+          <div x-show="$store.askUserQuestion.showSubmitTab" class="ask-review-panel">
+            <h4 class="ask-review-title">Review Your Answers</h4>
+            <template x-for="(q, qi) in $store.askUserQuestion.questions" :key="'review-'+qi">
+              <div class="ask-review-item" :class="{ 'unanswered': !($store.askUserQuestion.answers[qi] || []).length && !($store.askUserQuestion.otherTexts[qi] || '').trim() }">
+                <div class="ask-review-q">
+                  <span class="ask-review-num" x-text="qi + 1"></span>
+                  <span class="ask-review-text" x-text="q.question"></span>
+                </div>
+                <div class="ask-review-answer" x-text="$store.askUserQuestion.getAnswerSummary(qi)"></div>
+                <button class="ask-review-edit" @click="$store.askUserQuestion.setTab(qi)">Edit</button>
+              </div>
+            </template>
+            <div class="ask-review-warning" x-show="!$store.askUserQuestion.allAnswered">
+              <span class="material-symbols-outlined" style="font-size: 18px;">warning</span>
+              Please answer all questions before submitting.
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="ask-footer">
+          <div class="ask-footer-left">
+            <button class="ask-btn ask-btn-chat" @click="$store.askUserQuestion.cancel()">
+              <span class="material-symbols-outlined" style="font-size: 16px;">chat</span>
+              Chat about this
+            </button>
+          </div>
+          <div class="ask-footer-right">
+            <template x-if="!$store.askUserQuestion.showSubmitTab">
+              <button class="ask-btn ask-btn-secondary" @click="$store.askUserQuestion.nextTab()">
+                Next
+                <span class="material-symbols-outlined" style="font-size: 16px;">arrow_forward</span>
+              </button>
+            </template>
+            <template x-if="$store.askUserQuestion.showSubmitTab">
+              <button
+                class="ask-btn ask-btn-primary"
+                :disabled="!$store.askUserQuestion.allAnswered || $store.askUserQuestion.submitting"
+                @click="$store.askUserQuestion.submit()"
+              >
+                <template x-if="$store.askUserQuestion.submitting">
+                  <span class="ask-spinner"></span>
+                </template>
+                <span>Submit Answers</span>
+              </button>
+            </template>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</template>
+`;
+
+document.body.appendChild(wrapper);
+</script>
