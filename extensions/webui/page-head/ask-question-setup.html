@@ -536,14 +536,151 @@
   to { transform: rotate(360deg); }
 }
 
-@media (max-width: 600px) {
-  .ask-modal { width: 98%; max-height: 95vh; }
+/* ── Mobile bottom bar: always visible, fixed at bottom ── */
+.ask-mobile-bar {
+  display: flex;
+  align-items: center;
+  background: var(--color-background-elevated, #1e1e2e);
+  border-top: 1px solid var(--color-border, #333);
+  padding: 10px 12px;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.ask-mobile-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: var(--border-radius-md, 8px);
+  border: none;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-height: 50px;
+  flex: 1;
+}
+.ask-mobile-btn-cancel {
+  background: transparent;
+  color: var(--color-text-secondary, #888);
+  border: 1px solid var(--color-border, #333);
+}
+.ask-mobile-btn-next {
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--color-primary, #3b82f6);
+  border: 1px solid var(--color-primary, #3b82f6);
+}
+.ask-mobile-btn-submit {
+  background: var(--color-primary, #3b82f6);
+  color: #fff;
+}
+.ask-mobile-btn-submit:hover:not(:disabled) { background: var(--color-primary-hover, #2563eb); }
+.ask-mobile-btn-submit:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.ask-mobile-bar-label {
+  flex: 1;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-text-secondary, #999);
+  line-height: 1.3;
+}
+.ask-mobile-bar-label strong {
+  display: block;
+  color: var(--color-text, #e0e0e0);
+  font-size: 0.9rem;
+}
+
+.ask-mobile-progress-text {
+  font-weight: 600;
+  color: var(--color-text, #e0e0e0);
+}
+.ask-mobile-progress-track {
+  flex: 1;
+  height: 4px;
+  background: var(--color-border, #333);
+  border-radius: 2px;
+  overflow: hidden;
+  max-width: 200px;
+}
+.ask-mobile-progress-fill {
+  height: 100%;
+  background: var(--color-primary, #3b82f6);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+.ask-mobile-progress-fill.complete {
+  background: var(--color-success, #22c55e);
+}
+
+/* Pulse on Submit tab when ready */
+.ask-tab.submit-tab.ready {
+  background: var(--color-primary, #3b82f6);
+  color: #fff;
+  animation: ask-pulse-glow 1.5s ease-in-out infinite;
+}
+@keyframes ask-pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+  50% { box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15); }
+}
+
+/* Mobile progress - hidden by default */
+.ask-mobile-progress {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  /* Overlay sits ABOVE the A0 app bottom nav (56px) */
+  .ask-overlay {
+    bottom: 56px !important;
+  }
+
+  .ask-modal {
+    width: 100%;
+    max-height: calc(100vh - 56px);
+    border-radius: 0;
+  }
+
   .ask-question-layout { flex-direction: column; }
   .ask-preview-pane { width: 100%; }
-  .ask-tabs { padding: 6px 10px; }
-  .ask-tab-label { max-width: 50px; }
-  .ask-footer { flex-direction: column; gap: 8px; }
-  .ask-footer-left, .ask-footer-right { width: 100%; justify-content: center; }
+
+  /* Hide tab bar and desktop footer on mobile */
+  .ask-tabs { display: none !important; }
+  .ask-footer { display: none !important; }
+
+  /* Larger touch targets */
+  .ask-option { padding: 14px 16px; min-height: 48px; }
+  .ask-btn { padding: 12px 18px; font-size: 0.9rem; min-height: 48px; }
+
+  /* Show progress bar on mobile */
+  .ask-mobile-progress {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px 16px;
+    background: var(--color-background-muted, #16161e);
+    border-bottom: 1px solid var(--color-border, #333);
+    font-size: 0.85rem;
+    color: var(--color-text-secondary, #999);
+  }
+
+  /* FIXED position bottom bar - sits above A0 nav */
+  .ask-mobile-bar {
+    position: fixed;
+    bottom: 56px; /* above the A0 app bottom nav */
+    left: 0;
+    right: 0;
+    z-index: 1002;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Add padding at bottom of scrollable body so content isn't hidden behind bar */
+  .ask-body {
+    padding-bottom: 90px !important;
+  }
 }
 </style>
 
@@ -592,12 +729,24 @@ wrapper.innerHTML = `
           </template>
           <button
             class="ask-tab submit-tab"
-            :class="{ 'active': $store.askUserQuestion.showSubmitTab }"
+            :class="{ 'active': $store.askUserQuestion.showSubmitTab, 'ready': $store.askUserQuestion.allAnswered }"
             @click="$store.askUserQuestion.setTab($store.askUserQuestion.questions.length)"
           >
             <span class="material-symbols-outlined" style="font-size: 16px;">send</span>
             <span class="ask-tab-label">Submit</span>
           </button>
+        </div>
+
+        <!-- Mobile Progress Bar -->
+        <div class="ask-mobile-progress">
+          <span class="ask-mobile-progress-text" x-text="'Question ' + ($store.askUserQuestion.activeTab + 1) + ' of ' + $store.askUserQuestion.questions.length"></span>
+          <div class="ask-mobile-progress-track">
+            <div
+              class="ask-mobile-progress-fill"
+              :class="{ 'complete': $store.askUserQuestion.allAnswered }"
+              :style="'width:' + (Object.keys($store.askUserQuestion.answers).filter(i => ($store.askUserQuestion.answers[i] || []).length > 0 || ($store.askUserQuestion.otherTexts[i] || '').trim()).length / $store.askUserQuestion.questions.length * 100) + '%'"
+            ></div>
+          </div>
         </div>
 
         <!-- Tab Content -->
@@ -723,7 +872,7 @@ wrapper.innerHTML = `
           </div>
         </div>
 
-        <!-- Footer -->
+        <!-- Desktop Footer -->
         <div class="ask-footer">
           <div class="ask-footer-left">
             <button class="ask-btn ask-btn-chat" @click="$store.askUserQuestion.cancel()">
@@ -760,4 +909,125 @@ wrapper.innerHTML = `
 `;
 
 document.body.appendChild(wrapper);
-</script>
+
+// ── Inject mobile bottom bar via JS (bypasses all CSS caching issues) ──
+(function injectMobileBar() {
+  // Wait for Alpine to be ready
+  function tryInject() {
+    const store = window.Alpine && Alpine.store('askUserQuestion');
+    if (!store) { setTimeout(tryInject, 500); return; }
+
+    // Create the bar
+    const bar = document.createElement('div');
+    bar.id = 'ask-mobile-bar-js';
+    bar.innerHTML = `
+      <button id="ask-mob-left">←</button>
+      <div id="ask-mob-center"><strong id="ask-mob-count">1 / ?</strong><span id="ask-mob-status">Question</span></div>
+      <button id="ask-mob-right">Next →</button>
+    `;
+
+    // Force styles inline
+    Object.assign(bar.style, {
+      position: 'fixed', bottom: '56px', left: '0', right: '0',
+      zIndex: '1002', display: 'none', alignItems: 'center',
+      background: '#1e1e2e', borderTop: '1px solid #333',
+      padding: '10px 12px', gap: '8px',
+      boxShadow: '0 -4px 12px rgba(0,0,0,0.3)',
+      fontFamily: 'inherit'
+    });
+
+    document.body.appendChild(bar);
+
+    // Style buttons
+    const leftBtn = bar.querySelector('#ask-mob-left');
+    const rightBtn = bar.querySelector('#ask-mob-right');
+    const centerDiv = bar.querySelector('#ask-mob-center');
+    const countEl = bar.querySelector('#ask-mob-count');
+    const statusEl = bar.querySelector('#ask-mob-status');
+
+    Object.assign(leftBtn.style, {
+      flex: '0 0 auto', minWidth: '60px', minHeight: '50px',
+      padding: '14px 16px', borderRadius: '8px', border: '1px solid #333',
+      background: 'transparent', color: '#888', fontSize: '1.1rem',
+      fontWeight: '600', cursor: 'pointer', display: 'flex',
+      alignItems: 'center', justifyContent: 'center'
+    });
+
+    Object.assign(centerDiv.style, {
+      flex: '1', textAlign: 'center', fontSize: '0.8rem',
+      fontWeight: '500', color: '#999', lineHeight: '1.3'
+    });
+    countEl.style.cssText = 'display:block;color:#e0e0e0;font-size:0.9rem;';
+    statusEl.style.cssText = 'color:#999;';
+
+    Object.assign(rightBtn.style, {
+      flex: '0 0 auto', minWidth: '80px', minHeight: '50px',
+      padding: '14px 16px', borderRadius: '8px',
+      border: '1px solid #3b82f6', background: 'rgba(59,130,246,0.15)',
+      color: '#3b82f6', fontSize: '0.95rem', fontWeight: '600',
+      cursor: 'pointer', display: 'flex', alignItems: 'center',
+      justifyContent: 'center', gap: '6px'
+    });
+
+    // Update loop
+    function update() {
+      const s = Alpine.store('askUserQuestion');
+      const isMobile = window.innerWidth <= 768;
+
+      if (!s || !s.showModal || !isMobile) {
+        bar.style.display = 'none';
+        requestAnimationFrame(update);
+        return;
+      }
+
+      bar.style.display = 'flex';
+
+      // Counter
+      countEl.textContent = (s.activeTab + 1) + ' / ' + s.questions.length;
+      statusEl.textContent = s.allAnswered ? '✓ Ready to submit' : 'Question';
+
+      // Left button
+      leftBtn.textContent = s.activeTab > 0 ? '←' : '✕';
+      leftBtn.onclick = () => s.activeTab > 0 ? s.prevTab() : s.cancel();
+
+      // Right button
+      if (s.allAnswered) {
+        rightBtn.textContent = '✓ Submit';
+        rightBtn.style.background = '#3b82f6';
+        rightBtn.style.color = '#fff';
+        rightBtn.style.border = 'none';
+        rightBtn.onclick = () => s.submit();
+      } else {
+        rightBtn.textContent = 'Next →';
+        rightBtn.style.background = 'rgba(59,130,246,0.15)';
+        rightBtn.style.color = '#3b82f6';
+        rightBtn.style.border = '1px solid #3b82f6';
+        rightBtn.onclick = () => s.nextTab();
+      }
+
+      rightBtn.disabled = !!s.submitting;
+      if (s.submitting) rightBtn.style.opacity = '0.5';
+      else rightBtn.style.opacity = '1';
+
+      requestAnimationFrame(update);
+    }
+
+    requestAnimationFrame(update);
+
+    // Also add padding to the modal body on mobile
+    function addBodyPadding() {
+      const isMobile = window.innerWidth <= 768;
+      const body = document.querySelector('.ask-body');
+      if (body && isMobile) body.style.paddingBottom = '90px';
+      else if (body) body.style.paddingBottom = '';
+      // Hide tab bar on mobile
+      const tabs = document.querySelector('.ask-tabs');
+      if (tabs) tabs.style.display = isMobile ? 'none' : '';
+      // Hide desktop footer on mobile
+      const footer = document.querySelector('.ask-footer');
+      if (footer) footer.style.display = isMobile ? 'none' : '';
+    }
+    setInterval(addBodyPadding, 500);
+  }
+  tryInject();
+})();
