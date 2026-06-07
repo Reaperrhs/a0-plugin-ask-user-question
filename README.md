@@ -1,6 +1,6 @@
 # 🙋 Ask User Question — Agent Zero Plugin
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/Reaperrhs/a0-plugin-ask-user-question)
+[![Version](https://img.shields.io/badge/version-1.0.1-blue.svg)](https://github.com/Reaperrhs/a0-plugin-ask-user-question)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Agent Zero](https://img.shields.io/badge/Agent%20Zero-Plugin-purple.svg)](https://github.com/agent0ai/agent-zero)
 
