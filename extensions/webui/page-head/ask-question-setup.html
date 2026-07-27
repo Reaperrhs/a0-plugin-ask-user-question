@@ -9,8 +9,15 @@
   justify-content: center;
   padding: 20px 16px 96px 16px; /* bottom padding clears the A0 chat bar (~72px) + breathing room */
   overflow-y: auto;             /* if modal is taller than visible area, allow page scroll */
-  z-index: 1000;
+  overflow-x: hidden;           /* never allow horizontal overflow / left-edge clipping */
+  z-index: 21000;               /* must sit above ALL A0 chrome (sidebar/header go up to ~10000+) */
   animation: ask-fade-in 0.2s ease;
+  box-sizing: border-box;
+}
+
+/* box-sizing guard for every element inside the modal */
+.ask-overlay *, .ask-overlay *::before, .ask-overlay *::after {
+  box-sizing: border-box;
 }
 
 @keyframes ask-fade-in {
@@ -637,15 +644,28 @@
 }
 
 @media (max-width: 768px) {
-  /* Overlay sits ABOVE the A0 app bottom nav (56px) */
+  /* Overlay sits ABOVE the A0 app bottom nav (56px); no side padding so the modal can't be pushed off-screen */
   .ask-overlay {
     bottom: 56px !important;
+    padding: 0 !important;
   }
 
   .ask-modal {
     width: 100%;
-    max-height: calc(100vh - 56px);
+    max-width: 100vw;
+    max-height: calc(100dvh - 56px); /* dvh tracks mobile browser chrome correctly */
     border-radius: 0;
+    margin: 0;
+  }
+
+  /* Prevent any wide/unbreakable child from forcing the modal wider than the screen */
+  .ask-body { overflow-x: hidden; }
+  .ask-question-main { min-width: 0; }
+  .ask-question-text,
+  .ask-option-label,
+  .ask-option-desc {
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .ask-question-layout { flex-direction: column; }
@@ -678,7 +698,7 @@
     bottom: 56px; /* above the A0 app bottom nav */
     left: 0;
     right: 0;
-    z-index: 1002;
+    z-index: 21002; /* above the modal overlay (21000) and all A0 chrome */
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
   }
 
@@ -934,7 +954,7 @@ document.body.appendChild(wrapper);
     // Force styles inline
     Object.assign(bar.style, {
       position: 'fixed', bottom: '56px', left: '0', right: '0',
-      zIndex: '1002', display: 'none', alignItems: 'center',
+      zIndex: '21002', display: 'none', alignItems: 'center',
       background: '#1e1e2e', borderTop: '1px solid #333',
       padding: '10px 12px', gap: '8px',
       boxShadow: '0 -4px 12px rgba(0,0,0,0.3)',

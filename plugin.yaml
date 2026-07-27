@@ -1,5 +1,5 @@
 name: ask_user_question
 title: Ask User Question
 description: Lets AI agents ask structured clarifying questions with a beautiful tabbed modal UI.
-version: 1.0.1
+version: 1.0.2
 settings_sections: []
